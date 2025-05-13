@@ -1,5 +1,5 @@
 {
-  "name": "nodejs-mesto-backend",
+  "name": "yandex-praktikum",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,9 +9,9 @@
     "build": "tsc",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
-  "author": "AnDGolubev",
+  "author": "Anton Golubev",
   "license": "ISC",
-  "description": "",
+  "description": "Learning platform",
   "devDependencies": {
     "@eslint/js": "^9.26.0",
     "@types/express": "^5.0.1",
