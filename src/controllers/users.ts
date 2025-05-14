@@ -61,7 +61,7 @@ export const updateProfile = async (req: RequestWithUser, res: Response, next: N
     const _id = req.user?._id;
     const { name, about } = req.body;
     const newUser = { name, about } as Partial<IUser>;
-    const user = await User.findByIdAndUpdate(_id, newUser, { new: true });
+    const user = await User.findByIdAndUpdate(_id, newUser, { new: true, runValidators: true });
     if (!user) {
       throw new NotFoundError('Пользователь с указанным _id не найден');
     }
@@ -79,7 +79,7 @@ export const updateAvatar = async (req: RequestWithUser, res: Response) => {
     const _id = req.user?._id;
     const { avatar } = req.body;
     const newUser = { avatar } as Partial<IUser>;
-    const user = await User.findByIdAndUpdate(_id, newUser, { new: true });
+    const user = await User.findByIdAndUpdate(_id, newUser, { new: true, runValidators: true });
     if (!user) {
       throw new NotFoundError('Пользователь с указанным _id не найден');
     }
