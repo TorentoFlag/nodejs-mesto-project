@@ -67,11 +67,15 @@ export const updateProfile = async (req: RequestWithUser, res: Response, next: N
     }
     res.status(200).send(user);
   } catch (err) {
+    if (err instanceof Error && err.name === 'ValidationError') {
+      next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+      return;
+    }
     next(err);
   }
 };
 
-export const updateAvatar = async (req: RequestWithUser, res: Response) => {
+export const updateAvatar = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   if (!req.body) {
     throw new BadRequestError('Переданы некорректные данные при обновлении аватара');
   }
@@ -85,6 +89,10 @@ export const updateAvatar = async (req: RequestWithUser, res: Response) => {
     }
     res.status(200).send(user);
   } catch (err) {
-    console.error(err);
+    if (err instanceof Error && err.name === 'ValidationError') {
+      next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+      return;
+    }
+    next(err);
   }
 };
