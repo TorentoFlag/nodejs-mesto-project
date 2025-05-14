@@ -6,10 +6,18 @@ import { IUser } from '../interfaces/IUser';
 
 const userSchema = new Schema({
   name: {
-    type: String, required: false, minLength: 2, maxLength: 30, default: 'Жак-Ив Кусто',
+    type: String,
+    required: false,
+    minLength: [2, 'Минимальная длина поля "name" - 2'],
+    maxLength: [30, 'Максимальная длина поля "name" - 30'],
+    default: 'Жак-Ив Кусто',
   },
   about: {
-    type: String, required: false, minLength: 3, maxLength: 200, default: 'Исследователь',
+    type: String,
+    required: false,
+    minLength: [3, 'Минмальная длина поля "about" - 2'],
+    maxLength: [200, 'Максимальная длина поля "about" - 200'],
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
@@ -19,21 +27,23 @@ const userSchema = new Schema({
       validator(value: string) {
         return isUrl(value);
       },
+      message: 'Поле "link" должно быть валидным',
     },
   },
   email: {
     type: String,
-    required: true,
-    unique: true,
+    required: [true, 'Поле "email" должно быть заполнено'],
+    unique: [true, 'Такой email уже зарегистрирован'],
     validate: {
       validator(value: string) {
         return isEmail(value);
       },
+      message: 'Поле "email" должно быть валидным',
     },
   },
   password: {
     type: String,
-    required: true,
+    required: [true, 'Поле "password" должно быть заполнено'],
   },
 });
 
