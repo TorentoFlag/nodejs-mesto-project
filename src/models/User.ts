@@ -45,7 +45,7 @@ const userSchema = new Schema({
     type: String,
     required: [true, 'Поле "password" должно быть заполнено'],
   },
-});
+}, { versionKey: false });
 
 userSchema.pre('save', async function preSave(next) {
   if (!this.isModified('password')) {

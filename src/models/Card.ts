@@ -26,6 +26,6 @@ const cardSchema = new Schema({
     default: [],
   }],
   createdAt: { type: Schema.Types.Date, default: Date.now() },
-});
+}, { versionKey: false });
 
 export default model<ICard>('card', cardSchema);
