@@ -1,10 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 import { isValidObjectId } from 'mongoose';
+import jwt from 'jsonwebtoken';
+import { IDuplicateError } from '../interfaces/IDuplicateError';
+import ConflictError from '../errors/ConflictError';
+import { JWT_SECRET } from '../const';
 import BadRequestError from '../errors/BadRequestError';
 import NotFoundError from '../errors/NotFoundError';
 import { RequestWithUser } from '../interfaces/RequestWithUser';
 import { IUser } from '../interfaces/IUser';
 import User from '../models/User';
+import UnauthorizedError from '../errors/UnauthorizedError';
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -33,18 +38,13 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!req.body) {
-      throw new BadRequestError('Переданы некорректные данные при создании пользователя');
-    }
-    const {
-      name, about, avatar, email, password,
-    } = req.body;
-    const user = new User({
-      name, about, avatar, email, password,
-    });
-    await user.save();
+    const user = await User.create(req.body);
     res.status(200).send(user);
   } catch (err) {
+    if ((err as IDuplicateError).cause?.code === 11000) {
+      next(new ConflictError('Такой email уже зарегистрирован'));
+      return;
+    }
     if (err instanceof Error && err.name === 'ValidationError') {
       next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       return;
@@ -54,9 +54,6 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 };
 
 export const updateProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-  if (!req.body) {
-    throw new BadRequestError('Переданы некорректные данные при редактировании профиля');
-  }
   try {
     const _id = req.user?._id;
     const { name, about } = req.body;
@@ -76,9 +73,6 @@ export const updateProfile = async (req: RequestWithUser, res: Response, next: N
 };
 
 export const updateAvatar = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-  if (!req.body) {
-    throw new BadRequestError('Переданы некорректные данные при обновлении аватара');
-  }
   try {
     const _id = req.user?._id;
     const { avatar } = req.body;
@@ -93,6 +87,55 @@ export const updateAvatar = async (req: RequestWithUser, res: Response, next: Ne
       next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       return;
     }
+    next(err);
+  }
+};
+
+export const login = async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      throw new UnauthorizedError('Неверный логин или пароль');
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      throw new UnauthorizedError('Неверный логин или пароль');
+    }
+
+    if (!JWT_SECRET) {
+      throw new NotFoundError('Не найдена переменная "JWT_SECRET"');
+    } else {
+      const token = jwt.sign(
+        { _id: user._id },
+        JWT_SECRET,
+      );
+
+      res.cookie('jwt', token, {
+        maxAge: 604800000,
+        httpOnly: true,
+      }).end();
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getUser = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  const { user } = req;
+  const userId = user?._id;
+  try {
+    if (!userId) {
+      throw new UnauthorizedError('Вы не авторизованы');
+    }
+    const findUser = await User.findById(userId);
+    if (!findUser) {
+      throw new NotFoundError('Пользователь не найден');
+    }
+    res.status(200).send(findUser);
+  } catch (err) {
     next(err);
   }
 };
