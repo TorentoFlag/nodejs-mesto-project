@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { isValidObjectId } from 'mongoose';
+import ForbiddenError from '../errors/ForbiddenError';
+import UnauthorizedError from '../errors/UnauthorizedError';
 import BadRequestError from '../errors/BadRequestError';
 import NotFoundError from '../errors/NotFoundError';
 import { RequestWithUser } from '../interfaces/RequestWithUser';
@@ -36,17 +38,26 @@ export const createCard = async (req: RequestWithUser, res: Response, next: Next
   }
 };
 
-export const removeCard = async (req: Request, res: Response, next: NextFunction) => {
+export const removeCard = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
+    const { user } = req;
+    const userId = user?._id;
+    if (!userId) {
+      next(new UnauthorizedError('Вы не авторизованы'));
+    }
     const { cardId } = req.params;
     if (!isValidObjectId(cardId)) {
       throw new BadRequestError('Переданы некорректные данные при удалении карточки');
     }
-    const card = await Card.findByIdAndDelete(cardId);
+    const card = await Card.findById(cardId);
     if (!card) {
       throw new NotFoundError('Карточка с указанным _id не найдена');
     }
-    res.status(200).send(card);
+    if (card?.owner.toString() !== userId) {
+      throw new ForbiddenError('Нет доступа на удаление этой карточки');
+    }
+    const deleteCard = await Card.deleteOne({ _id: cardId });
+    res.status(200).send(deleteCard);
   } catch (err) {
     next(err);
   }
