@@ -1,6 +1,7 @@
 import express from 'express';
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
+import NotFoundError from './errors/NotFoundError';
 import { loginValidator, userValidation } from './middleware/validation';
 import auth from './middleware/auth';
 import { createUser, login } from './controllers/users';
@@ -22,6 +23,9 @@ app.post('/signup', userValidation, createUser);
 
 app.use(auth);
 app.use('/', router);
+router.use(() => {
+  throw new NotFoundError('Запрашиваемый ресурс не найден');
+});
 
 app.use(errorLogger);
 app.use(ErrorHandler);
