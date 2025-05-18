@@ -11,20 +11,20 @@ interface IPayload {
 
 const auth = (req: RequestWithUser, res: Response, next: NextFunction) => {
   const token = req.cookies.jwt;
-  if (!token) {
-    throw new UnauthorizedError('Неверный логин или пароль');
-  }
-
-  if (!JWT_SECRET) {
-    throw new NotFoundError('Не найдена переменная "JWT_SECRET"');
-  }
 
   let payload;
 
   try {
+    if (!token) {
+      throw new UnauthorizedError('Неверный логин или пароль');
+    }
+
+    if (!JWT_SECRET) {
+      throw new NotFoundError('Не найдена переменная "JWT_SECRET"');
+    }
     payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
-    throw new UnauthorizedError('Ошибка авторизации');
+    next(new UnauthorizedError('Ошибка авторизации'));
   }
 
   req.user = payload as IPayload;
