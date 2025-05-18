@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { isValidObjectId } from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { IDuplicateError } from '../interfaces/IDuplicateError';
 import ConflictError from '../errors/ConflictError';
@@ -23,9 +22,6 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
-    if (!isValidObjectId(userId)) {
-      throw new BadRequestError('Некорректные данные при запросе пользователя');
-    }
     const user = await User.findById(userId);
     if (!user) {
       throw new NotFoundError('Пользователь с указанным _id не найден');
@@ -127,9 +123,6 @@ export const getUser = async (req: RequestWithUser, res: Response, next: NextFun
   const { user } = req;
   const userId = user?._id;
   try {
-    if (!userId) {
-      throw new UnauthorizedError('Вы не авторизованы');
-    }
     const findUser = await User.findById(userId);
     if (!findUser) {
       throw new NotFoundError('Пользователь не найден');

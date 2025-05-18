@@ -1,4 +1,6 @@
 import { celebrate, Joi } from 'celebrate';
+import { NextFunction, Request, Response } from 'express';
+import { isValidObjectId } from 'mongoose';
 import { URL_REGEXP } from '../const';
 import BadRequestError from '../errors/BadRequestError';
 import UnauthorizedError from '../errors/UnauthorizedError';
@@ -11,6 +13,7 @@ const errors = {
   password: new BadRequestError('Введите пароль'),
   login: new UnauthorizedError('Неверный логин или пароль'),
   link: new BadRequestError('Введите валидную ссылку'),
+  id: new BadRequestError('Передан неверный ID'),
 };
 
 export const userValidation = celebrate({
@@ -50,3 +53,15 @@ export const cardValidator = celebrate({
     link: Joi.string().required().regex(URL_REGEXP).error(errors.link),
   }),
 });
+
+export const objectIdValidator = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { cardId } = req.params;
+    if (!isValidObjectId(cardId)) {
+      throw errors.id;
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};

@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { isValidObjectId } from 'mongoose';
 import ForbiddenError from '../errors/ForbiddenError';
-import UnauthorizedError from '../errors/UnauthorizedError';
 import BadRequestError from '../errors/BadRequestError';
 import NotFoundError from '../errors/NotFoundError';
 import { RequestWithUser } from '../interfaces/RequestWithUser';
@@ -25,9 +23,6 @@ export const createCard = async (req: RequestWithUser, res: Response, next: Next
     const _id = req.user?._id;
     const card = new Card({ name, link, owner: _id });
     await card.save();
-    if (!card) {
-      throw new NotFoundError('Карточка с указанным _id не найдена');
-    }
     res.status(200).send(card);
   } catch (err) {
     if (err instanceof Error && err.name === 'ValidationError') {
@@ -42,13 +37,7 @@ export const removeCard = async (req: RequestWithUser, res: Response, next: Next
   try {
     const { user } = req;
     const userId = user?._id;
-    if (!userId) {
-      next(new UnauthorizedError('Вы не авторизованы'));
-    }
     const { cardId } = req.params;
-    if (!isValidObjectId(cardId)) {
-      throw new BadRequestError('Переданы некорректные данные при удалении карточки');
-    }
     const card = await Card.findById(cardId);
     if (!card) {
       throw new NotFoundError('Карточка с указанным _id не найдена');
@@ -67,9 +56,6 @@ export const likeCard = async (req: RequestWithUser, res: Response, next: NextFu
   try {
     const userId = req.user?._id;
     const { cardId } = req.params;
-    if (!isValidObjectId(userId) || !isValidObjectId(cardId)) {
-      throw new BadRequestError('Переданые некорректные данные для постановки лайка');
-    }
     const liked = await Card.findByIdAndUpdate(
       cardId,
       { $addToSet: { likes: userId } },
@@ -88,9 +74,6 @@ export const dislikeCard = async (req: RequestWithUser, res: Response, next: Nex
   try {
     const userId = req.user?._id;
     const { cardId } = req.params;
-    if (!isValidObjectId(userId) || !isValidObjectId(cardId)) {
-      throw new BadRequestError('Переданы некорректные данные для снятия лайка');
-    }
     const disliked = await Card.findByIdAndUpdate(
       cardId,
       { $pull: { likes: userId } },

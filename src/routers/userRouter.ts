@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { profileUpdateValidator, avatarUpdateValidator } from '../middleware/validation';
+import { profileUpdateValidator, avatarUpdateValidator, objectIdValidator } from '../middleware/validation';
 import {
   getAllUsers,
   getUserById,
@@ -12,7 +12,7 @@ const userRouter = Router();
 
 userRouter.get('/', getAllUsers);
 userRouter.get('/me', getUser);
-userRouter.get('/:userId', getUserById);
+userRouter.get('/:userId', objectIdValidator, getUserById);
 userRouter.patch('/me', profileUpdateValidator, updateProfile);
 userRouter.patch('/me/avatar', avatarUpdateValidator, updateAvatar);
 
