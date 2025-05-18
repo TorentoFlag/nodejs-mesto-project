@@ -25,7 +25,7 @@ const cardSchema = new Schema({
     ref: 'user',
     default: [],
   }],
-  createdAt: { type: Schema.Types.Date, default: Date.now() },
+  createdAt: { type: Schema.Types.Date, default: Date.now },
 }, { versionKey: false });
 
 export default model<ICard>('card', cardSchema);
