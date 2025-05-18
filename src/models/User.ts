@@ -15,7 +15,7 @@ const userSchema = new Schema({
   about: {
     type: String,
     required: false,
-    minLength: [3, 'Минмальная длина поля "about" - 2'],
+    minLength: [2, 'Минмальная длина поля "about" - 2'],
     maxLength: [200, 'Максимальная длина поля "about" - 200'],
     default: 'Исследователь',
   },
@@ -44,6 +44,7 @@ const userSchema = new Schema({
   password: {
     type: String,
     required: [true, 'Поле "password" должно быть заполнено'],
+    select: false,
   },
 }, { versionKey: false });
 
